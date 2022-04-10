@@ -1,0 +1,88 @@
+.section-heading {
+    position: relative;
+    z-index: 1;
+    background-color: #f8f8f8;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-left: 3px solid #194985;
+}
+
+.custom-preloader {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    background-color: #f4f6f9;
+    height: 100vh;
+    width: 100%;
+    opacity: 1;
+    transition: opacity 200ms ease-in-out;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+}
+
+@keyframes fade {
+
+    0%,
+    100% {
+        opacity: 0
+    }
+
+    50% {
+        opacity: 1
+    }
+}
+
+@-webkit-keyframes fade {
+
+    0%,
+    100% {
+        opacity: 0
+    }
+
+    50% {
+        opacity: 1
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animation__fade-in-fade-out {
+    opacity: 1;
+    animation: fade 1s linear;
+}
+
+.anim_spin {
+    animation-name: spin;
+    animation-duration: 5000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+
+/* Browser Hide Arrow Button */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
