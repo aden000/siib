@@ -4,10 +4,12 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\KategoriBarangModel;
+use App\Models\LogAktifitasModel;
 use App\Models\SatuanModel;
 use App\Models\SemesterModel;
 use App\Models\UnitKerjaModel;
 use App\Models\VendorModel;
+use CodeIgniter\I18n\Time;
 
 class KelolaController extends BaseController
 {
@@ -37,6 +39,12 @@ class KelolaController extends BaseController
             ]);
             $errors = $model->errors();
             if (empty($errors)) {
+                LogAktifitasModel::CreateLog(
+                    $this->userdata['id_user'],
+                    "Melakukan penambahan kategori barang berupa " .
+                        $namakatbar . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+                );
+
                 return redirect()->route('admin.kelola.kategoribarang')->with('info', [
                     'judul' => 'Penambahan kategori barang berhasil',
                     'msg' => 'Kategori barang ditambahkan dengan sukses',
@@ -69,12 +77,19 @@ class KelolaController extends BaseController
 
         if (!is_null($newNamKatBar)) {
             $KatBarModel = new KategoriBarangModel();
+            $oldResult = $KatBarModel->find($idKatBar);
             $KatBarModel->update($idKatBar, [
                 'nama_kategori_barang' => $newNamKatBar
             ]);
 
             $errors = $KatBarModel->errors();
             if (empty($errors)) {
+                LogAktifitasModel::CreateLog(
+                    $this->userdata['id_user'],
+                    "Melakukan pengubahan kategori barang dari" . $oldResult['nama_kategori_barang'] . " Menjadi " .
+                        $newNamKatBar . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+                );
+
                 return redirect()->route('admin.kelola.kategoribarang')->with('info', [
                     'judul' => 'Pengubahan kategori barang berhasil',
                     'msg' => 'Pengubahan nama kategori barang berjalan dengan sukses',
@@ -106,10 +121,16 @@ class KelolaController extends BaseController
         $idKatBar = esc($this->request->getPost('idKatBar'));
 
         $KatBarModel = new KategoriBarangModel();
+        $oldResult = $KatBarModel->find($idKatBar);
         $KatBarModel->delete($idKatBar);
         $errors = $KatBarModel->errors();
 
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan kategori barang berupa " .
+                    $oldResult['nama_kategori_barang'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.kategoribarang')->with('info', [
                 'judul' => 'Penghapusan kategori barang berhasil',
                 'msg' => 'Penghapusan nama kategori barang berjalan dengan sukses',
@@ -161,6 +182,11 @@ class KelolaController extends BaseController
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan unit kerja berupa " .
+                    $namaUnitKerja . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.unitkerja')->with('info', [
                 'judul' => 'Penambahan unit kerja berhasil',
                 'msg' => 'Penambahan nama unit kerja berjalan dengan sukses',
@@ -185,12 +211,18 @@ class KelolaController extends BaseController
         $namaUnitKerja = esc($this->request->getPost('newNamaUnitKerja'));
 
         $model = new UnitKerjaModel();
+        $oldResult = $model->find($id);
         $model->update($id, [
             'nama_unit_kerja' => $namaUnitKerja
         ]);
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan pengubahan unit kerja dari " . $oldResult['nama_unit_kerja'] . " Menjadi " .
+                    $namaUnitKerja . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.unitkerja')->with('info', [
                 'judul' => 'Pengubahan unit kerja berhasil',
                 'msg' => 'Pengubahan nama unit kerja berjalan dengan sukses',
@@ -214,10 +246,16 @@ class KelolaController extends BaseController
     {
         $id = esc($this->request->getPost('idUnitKerja'));
         $unitkerja = new UnitKerjaModel();
+        $oldResult = $unitkerja->find($id);
         $unitkerja->delete($id);
 
         $errors = $unitkerja->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan unit kerja berupa " .
+                    $oldResult['nama_unit_kerja'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.unitkerja')->with('info', [
                 'judul' => 'Penghapusan unit kerja berhasil',
                 'msg' => 'Penghapusan nama unit kerja berjalan dengan sukses',
@@ -268,6 +306,12 @@ class KelolaController extends BaseController
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan vendor berupa " .
+                    $namaVendor . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
+
             return redirect()->route('admin.kelola.vendor')->with('info', [
                 'judul' => 'Penambahan vendor berhasil',
                 'msg' => 'Penambahan nama vendor berjalan dengan sukses',
@@ -292,12 +336,18 @@ class KelolaController extends BaseController
         $namaVendor = esc($this->request->getPost('newNamaVendor'));
 
         $model = new VendorModel();
+        $oldResult = $model->find($id);
         $model->update($id, [
             'nama_vendor' => $namaVendor
         ]);
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan pengubahan vendor dari " . $oldResult['nama_vendor'] . " Menjadi " .
+                    $namaVendor . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.vendor')->with('info', [
                 'judul' => 'Pengubahan vendor berhasil',
                 'msg' => 'Pengubahan nama vendor berjalan dengan sukses',
@@ -321,10 +371,16 @@ class KelolaController extends BaseController
     {
         $id = esc($this->request->getPost('idVendor'));
         $vendor = new VendorModel();
+        $oldResult = $vendor->find($id);
         $vendor->delete($id);
 
         $errors = $vendor->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan vendor berupa " .
+                    $oldResult['nama_vendor'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.vendor')->with('info', [
                 'judul' => 'Penghapusan vendor berhasil',
                 'msg' => 'Penghapusan nama vendor berjalan dengan sukses',
@@ -380,6 +436,11 @@ class KelolaController extends BaseController
         $errors = $model->errors();
 
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan semester berupa Semester ke-" .
+                    $semester . ' - ' . $tahun . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.semester')->with('info', [
                 'judul' => 'Pembuatan semester berhasil',
                 'msg' => 'Pembuatan nama semester berjalan dengan sukses',
@@ -406,6 +467,7 @@ class KelolaController extends BaseController
         $thnval = esc($this->request->getPost('thnval'));
 
         $model = new SemesterModel();
+        $oldResult = $model->find($id);
         $model->update($id, [
             'semester_ke' => $smtval,
             'tahun' => $thnval
@@ -413,6 +475,11 @@ class KelolaController extends BaseController
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan pengubahan semester dari Semester ke-" . $oldResult['semester_ke'] . ' - ' . $oldResult['tahun'] .
+                    "Menjadi Semester ke-$smtval - $thnval pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.semester')->with('info', [
                 'judul' => 'Pengubahan semester berhasil',
                 'msg' => 'Pengubahan semester berjalan dengan sukses',
@@ -437,10 +504,16 @@ class KelolaController extends BaseController
         $id = esc($this->request->getPost('idsmt'));
 
         $model = new SemesterModel();
+        $oldResult = $model->find($id);
         $model->delete($id);
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan semester berupa Semester ke-" . $oldResult['semester_ke'] . ' - ' .
+                    $oldResult['tahun'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.semester')->with('info', [
                 'judul' => 'Penghapusan semester berhasil',
                 'msg' => 'Penghapusan semester berjalan dengan sukses',
@@ -495,6 +568,11 @@ class KelolaController extends BaseController
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan satuan berupa " .
+                    $namaSatuan . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.satuan')->with('info', [
                 'judul' => 'Penambahan Satuan berhasil',
                 'msg' => 'Penambahan satuan dilakukan dengan sukses',
@@ -527,6 +605,7 @@ class KelolaController extends BaseController
         }
 
         $model = new SatuanModel();
+        $oldResult = $model->find($id);
         $model->update($id, [
             'nama_satuan' => $newNamaSatuan,
             'singkatan' => $newSingkatan
@@ -534,6 +613,11 @@ class KelolaController extends BaseController
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan pengubahan satuan dari " . $oldResult['nama_satuan'] . ' Menjadi ' .
+                    $newNamaSatuan . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.satuan')->with('info', [
                 'judul' => 'Pengubahan Satuan Berhasil!',
                 'msg' => 'Pengubahan Satuan dilakukan dengan sukses',
@@ -564,10 +648,16 @@ class KelolaController extends BaseController
         }
 
         $model = new SatuanModel();
+        $oldResult = $model->find($id);
         $model->delete($id);
 
         $errors = $model->errors();
         if (empty($errors)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan satuan berupa " .
+                    $oldResult['nama_satuan'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.kelola.satuan')->with('info', [
                 'judul' => 'Penghapusan satuan berhasil',
                 'msg' => 'Penghapusan satuan berjalan dengan sukses',

@@ -40,13 +40,13 @@ class KategoriBarangModel extends Model
     // Callbacks
     protected $allowCallbacks = true;
     protected $beforeInsert   = [];
-    protected $afterInsert    = ["LogInsert"];
-    protected $beforeUpdate   = ["LogUpdate_Pre"];
-    protected $afterUpdate    = ["LogUpdate_Post"];
+    protected $afterInsert    = [];
+    protected $beforeUpdate   = [];
+    protected $afterUpdate    = [];
     protected $beforeFind     = [];
     protected $afterFind      = [];
-    protected $beforeDelete   = ["LogDelete_Pre"];
-    protected $afterDelete    = ["LogDelete_Post"];
+    protected $beforeDelete   = [];
+    protected $afterDelete    = [];
 
     protected function LogInsert(array $data)
     {

@@ -46,6 +46,7 @@ $routes->group('api', function ($routes) {
 	$routes->post('dashboard', 'DefaultController::dashboard', ['filter' => 'authfilter']);
 	$routes->group('barang', ['filter' => 'authfilter'], function ($routes) {
 		$routes->post('daftar-barang', 'TransaksiController::daftarBarang');
+		$routes->post('keluar', 'TransaksiController::barangKeluar');
 	});
 });
 
@@ -58,7 +59,7 @@ $routes->group('admin', ['filter' => 'authfilter'], function ($routes) {
 		$routes->post('delete', 'UserController::deleteUser', ['as' => 'admin.users.delete']);
 		$routes->post('resetpass', 'UserController::resetPasswordUser', ['as' => 'admin.users.resetpass']);
 	});
-	$routes->group('kelola', function ($routes) {
+	$routes->group('kelola', ['filter' => 'authfilter:psi,bagkeu'], function ($routes) {
 		$routes->group('kategori-barang', function ($routes) {
 			$routes->get('/', 'KelolaController::indexKategoriBarang', ['as' => 'admin.kelola.kategoribarang']);
 			$routes->post('create', 'KelolaController::createKategoriBarang', ['as' => 'admin.kelola.kategoribarang.create']);
@@ -90,7 +91,7 @@ $routes->group('admin', ['filter' => 'authfilter'], function ($routes) {
 			$routes->post('delete', 'KelolaController::deleteSatuan', ['as' => 'admin.kelola.satuan.delete']);
 		});
 	});
-	$routes->group('transaksi', function ($routes) {
+	$routes->group('transaksi', ['filter' => 'authfilter:bagkeu'], function ($routes) {
 		$routes->group('barang', function ($routes) {
 			$routes->get('/', 'TransaksiController::daftarBarang', ['as' => 'admin.transaksi.barang']);
 			$routes->get('tambah', 'TransaksiController::tambahBarang', ['as' => 'admin.transaksi.barang.tambah']);
@@ -117,17 +118,18 @@ $routes->group('admin', ['filter' => 'authfilter'], function ($routes) {
 			$routes->post('create', 'TransaksiController::barangKeluarCreate', ['as' => 'admin.transaksi.barangkeluar.create']);
 			$routes->get('detail/(:num)', 'TransaksiController::detailBarangKeluar/$1', ['as' => 'admin.transaksi.barangkeluar.detail']);
 			$routes->get('detail/(:num)/pdf', 'PDFController::makePDFDetailBarangKeluar/$1', ['as' => 'admin.transaksi.barangkeluar.detail.pdf']);
+			$routes->post('ubah-status', 'TransaksiController::ubahStatusBarangKeluar', ['as' => 'admin.transaksi.barangkeluar.ubahstatus']);
 		});
 	});
 	$routes->post('ajax', 'AjaxController::pusatAjax', ['as' => 'admin.pusatajax']);
-	$routes->group('pelaporan', function ($routes) {
+	$routes->group('pelaporan', ['filter' => 'authfilter:yayasan'], function ($routes) {
 		$routes->get('/', 'PelaporanController::manajemenPelaporan', ['as' => 'admin.pelaporan']);
 		$routes->post('referensi', 'PDFController::makePDFPelaporanReferensi', ['as' => 'admin.pelaporan.referensi']);
 		$routes->post('barang', 'PDFController::makePDFPelaporanBarang', ['as' => 'admin.pelaporan.barang']);
 		$routes->post('barang-masuk', 'PDFController::makePDFPelaporanBarangMasuk', ['as' => 'admin.pelaporan.barangmasuk']);
 		$routes->post('barang-keluar', 'PDFController::makePDFPelaporanBarangKeluar', ['as' => 'admin.pelaporan.barangkeluar']);
 	});
-	$routes->get('log-aktifitas', 'DefaultController::logAktifitas', ['as' => 'admin.logaktifitas']);
+	$routes->get('log-aktifitas', 'DefaultController::logAktifitas', ['as' => 'admin.logaktifitas', 'filter' => 'authfilter:yayasan']);
 });
 
 

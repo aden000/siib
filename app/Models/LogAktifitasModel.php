@@ -51,4 +51,14 @@ class LogAktifitasModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public static function CreateLog(int $issuer, string $keterangan)
+    {
+        $logModel = new LogAktifitasModel();
+
+        $logModel->insert([
+            'id_user' => $issuer,
+            'keterangan_aktifitas' => $keterangan
+        ]);
+    }
 }

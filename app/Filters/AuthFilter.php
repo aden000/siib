@@ -45,14 +45,17 @@ class AuthFilter implements FilterInterface
 			}
 
 			if (is_null($token) || empty($token)) {
-				return $this->failUnauthorized();
+				return \Config\Services::response()->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
 			}
 
 			$decoded = null;
 			try {
 				$decoded = JWT::decode($token, new Key(getenv('JWT_SECRET_KEY'), 'HS256'));
 			} catch (Exception $e) {
-				return $this->failUnauthorized();
+				return \Config\Services::response()->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)->setJSON([
+					'status' => 'error',
+					'message' => 'Token tidak valid'
+				]);
 			}
 		} else {
 			$id = session()->get('LoggedInID');
@@ -65,28 +68,25 @@ class AuthFilter implements FilterInterface
 			}
 			$uModel = new UserModel();
 			$userData = $uModel->find($id);
+			// dd($arguments);
+			$access = false;
 			if (!empty($arguments)) {
-				if (in_array('psi', $arguments) && $userData['role'] != 1) {
-					return redirect()->route('admin.dashboard')->with('info', [
-						'judul' => 'User tidak punya akses',
-						'msg' => 'Anda tidak diijinkan mengakses url ini',
-						'role' => 'error'
-					]);
+				if (in_array('psi', $arguments) && $userData['role'] == 1) {
+					$access = true;
+				} else if (in_array('bagkeu', $arguments) && in_array($userData['role'], ['1', '2'])) {
+					$access = true;
+				} else if (in_array('yayasan', $arguments) && in_array($userData['role'], ['1', '3'])) {
+					$access = true;
+				} else {
+					$access = false;
 				}
-				if (in_array('bagkeu', $arguments) && $userData['role'] != 2) {
-					return redirect()->route('admin.dashboard')->with('info', [
-						'judul' => 'User tidak punya akses',
-						'msg' => 'Anda tidak diijinkan mengakses url ini',
-						'role' => 'error'
-					]);
-				}
-				if (in_array('yayasan', $arguments) && $userData['role'] != 3) {
-					return redirect()->route('admin.dashboard')->with('info', [
-						'judul' => 'User tidak punya akses',
-						'msg' => 'Anda tidak diijinkan mengakses url ini',
-						'role' => 'error'
-					]);
-				}
+			}
+			if (!$access && !empty($arguments)) {
+				return redirect()->route('admin.dashboard')->with('info', [
+					'judul' => 'User tidak punya akses',
+					'msg' => 'Anda tidak diijinkan mengakses url ini',
+					'role' => 'error'
+				]);
 			}
 		}
 	}

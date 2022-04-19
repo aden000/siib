@@ -3,9 +3,11 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\LogAktifitasModel;
 use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\HTTP\IncomingRequest;
+use CodeIgniter\I18n\Time;
 use Firebase\JWT\JWT;
 
 class AuthController extends BaseController
@@ -34,6 +36,13 @@ class AuthController extends BaseController
 				if ($result['role'] == 3) $sebagai = 'Yayasan';
 				if (!in_array($result['role'], [1, 2, 3])) $sebagai = 'Belum Terdefinisi';
 
+				LogAktifitasModel::CreateLog(
+					$result['id_user'],
+					"Telah login pada "
+						. Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+						. " Menggunakan " . $this->request->getUserAgent()->getBrowser()
+				);
+
 				return redirect()->route('admin.dashboard')->with('info', [
 					'judul' => 'Selamat Datang!',
 					'msg' => "" . $result['nama_user'] . " telah Login sebagai " . $sebagai,
@@ -45,6 +54,12 @@ class AuthController extends BaseController
 					'nama_user' => $result['nama_user'],
 					'role' => $result['role']
 				];
+				LogAktifitasModel::CreateLog(
+					$result['id_user'],
+					"Telah login pada "
+						. Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+						. " Menggunakan Android "
+				);
 				return $this->respond([
 					'jwt_token' => JWT::encode($payload, getenv('JWT_SECRET_KEY'), 'HS256'),
 					'user_agent' => $this->request->getUserAgent()->getPlatform(),
@@ -126,6 +141,12 @@ class AuthController extends BaseController
 		if ($uModel->update($idUser, [
 			'password' => password_hash($newPass, PASSWORD_BCRYPT)
 		])) {
+			LogAktifitasModel::CreateLog(
+				$idUser,
+				"Telah mengganti password secara mandiri pada tanggal "
+					. Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+			);
+
 			return redirect()->back()->with('info', [
 				'judul' => 'Password Berhasil diubah',
 				'msg' => 'Silahkan gunakan password yang baru',

@@ -136,19 +136,33 @@ class DetailBarangModel extends Model
         // dd($kuantitasRepresentatif + ($konversiTurunan * $banyaknyaKuantitasAtasan));
 
         //update isi kuantitas pada id satuan representatif
+        $kuantitasAkhirRepresentatif = $kuantitasRepresentatif + ($konversiTurunan * $banyaknyaKuantitasAtasan);
         $this->update($idDetailBarangPilihan, [
-            'kuantitas' => $kuantitasRepresentatif + ($konversiTurunan * $banyaknyaKuantitasAtasan)
+            'kuantitas' => $kuantitasAkhirRepresentatif
         ]);
 
         //update isi kuantitas pada id satuan atasan
+        $kuantitasAkhirAtasan = $kuantitasAtasan - $banyaknyaKuantitasAtasan;
         $this->update($idDetailBarangAtasan, [
-            'kuantitas' => $kuantitasAtasan - $banyaknyaKuantitasAtasan
+            'kuantitas' => $kuantitasAkhirAtasan
         ]);
 
         $result = [
             'success' => empty($this->errors()),
-            'msg' => $this->errors()
+            'msg' => $this->errors(),
         ];
+        if (empty($this->errors())) {
+            $satuanModel = new SatuanModel();
+            $result['qty'] =  [
+                'awalRepresentatif' =>  $kuantitasRepresentatif,
+                'akhirRepresentatif' => $kuantitasAkhirRepresentatif,
+                'namaSatuanRepresentatif' => $satuanModel->find($IDSatuanRepresentatif)['nama_satuan'],
+                'konversiTurunan' => $konversiTurunan,
+                'awalAtasan' => $kuantitasAtasan,
+                'akhirAtasan' => $kuantitasAkhirAtasan,
+                'namaSatuanAtasan' => $satuanModel->find($resultAtasanSatuan['id_satuan'])['nama_satuan']
+            ];
+        }
         return $result;
     }
 }

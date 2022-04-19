@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\LogAktifitasModel;
 use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
+use CodeIgniter\I18n\Time;
 use Config\Services;
 
 class UserController extends BaseController
@@ -84,6 +86,11 @@ class UserController extends BaseController
 			'password' => password_hash($password, PASSWORD_BCRYPT),
 			'role' => $role
 		])) {
+			LogAktifitasModel::CreateLog(
+				$this->userdata['id_user'],
+				"Melakukan penambahan user berupa " .
+					$nama_user . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+			);
 			return redirect()->route('admin.users.view')->with('info', [
 				'judul' => 'Pembuatan User Berhasil',
 				'msg' => 'Pembuatan user beserta hak akses sukses!',
@@ -114,11 +121,17 @@ class UserController extends BaseController
 		$role = esc($this->request->getPost('role'));
 
 		$uModel = new UserModel();
+		$oldResult = $uModel->find($idUser);
 		if ($uModel->update($idUser, [
 			'nama_user' => $editNama,
 			'username' => $username,
 			'role' => $role
 		])) {
+			LogAktifitasModel::CreateLog(
+				$this->userdata['id_user'],
+				"Melakukan pengubahan user pada " .
+					$oldResult['nama_user'] . " Menjadi " . $editNama . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+			);
 			return redirect()->route('admin.users.view')->with('info', [
 				'judul' => 'Pengubahan User Berhasil',
 				'msg' => 'Pengubahan user sukses!',
@@ -145,7 +158,13 @@ class UserController extends BaseController
 	{
 		$idUser = esc($this->request->getPost('delIdUser'));
 		$uModel = new UserModel();
+		$oldResult = $uModel->find($idUser);
 		if ($uModel->delete($idUser)) {
+			LogAktifitasModel::CreateLog(
+				$this->userdata['id_user'],
+				"Melakukan penghapusan user dengan nama " .
+					$oldResult['nama_user'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+			);
 			return redirect()->route('admin.users.view')->with('info', [
 				'judul' => 'Penghapusan User Berhasil',
 				'msg' => 'Penghapusan user sukses!',
@@ -172,9 +191,15 @@ class UserController extends BaseController
 	{
 		$idUser = esc($this->request->getPost('resetPassIdUser'));
 		$uModel = new UserModel();
+		$oldResult = $uModel->find($idUser);
 		if ($uModel->update($idUser, [
 			'password' => password_hash(getenv('RESET_PASSWORD_VALUE_DEFAULT'), PASSWORD_BCRYPT)
 		])) {
+			LogAktifitasModel::CreateLog(
+				$this->userdata['id_user'],
+				"Melakukan pengubahan password untuk user " .
+					$oldResult['nama_result'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+			);
 			return redirect()->route('admin.users.view')->with('info', [
 				'judul' => 'Reset Password User Berhasil',
 				'msg' => 'Reset password user sukses!',
@@ -195,14 +220,6 @@ class UserController extends BaseController
 				]);
 			}
 		}
-	}
-
-	public function changePassword()
-	{
-		$oldPass = esc($this->request->getPost('oldpass'));
-		$newPass = esc($this->request->getPost('newpass'));
-		$newPassConfirm = esc($this->request->getPost('newpassconfirm'));
-		$uModel = new UserModel();
 	}
 
 	use ResponseTrait;

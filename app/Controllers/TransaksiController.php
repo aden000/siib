@@ -10,6 +10,7 @@ use App\Models\DetailBarangKeluarModel;
 use App\Models\DetailBarangMasukModel;
 use App\Models\DetailBarangModel;
 use App\Models\KategoriBarangModel;
+use App\Models\LogAktifitasModel;
 use App\Models\SatuanModel;
 use App\Models\SemesterModel;
 use App\Models\UnitKerjaModel;
@@ -110,6 +111,11 @@ class TransaksiController extends BaseController
 
 
         if ($result['berhasil']) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan barang berupa " .
+                    $namaBarang . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barang')->with('info', [
                 'judul' => 'Penambahan Barang Berhasil!',
                 'msg' => 'Penambahan barang dan detail barang dilakukan dengan sukses',
@@ -136,10 +142,16 @@ class TransaksiController extends BaseController
         $newKatBar = esc($this->request->getPost('katbar'));
 
         $bModel = new BarangModel();
+        $oldResult = $bModel->find($idBarang);
         if ($bModel->update($idBarang, [
             'id_kategori_barang' => $newKatBar,
             'nama_barang' => $newNamaBarang
         ])) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan pengubahan barang dari " . $oldResult['nama_barang'] . ' Menjadi ' .
+                    $newNamaBarang . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barang')->with('info', [
                 'judul' => 'Pengubahan Barang Berhasil!',
                 'msg' => 'Pengubahan barang dilakukan dengan sukses',
@@ -215,7 +227,13 @@ class TransaksiController extends BaseController
         $dbModel->hapusDetailBarangBerdasarkanIDBarang($idBarang);
 
         $bModel = new BarangModel();
+        $oldResult = $bModel->find($idBarang);
         if ($bModel->delete($idBarang)) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan barang berupa " .
+                    $oldResult['nama_barang'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barang')->with('info', [
                 'judul' => 'Penghapusan Barang Berhasil!',
                 'msg' => 'Penghapusan barang dan detail barang dilakukan dengan sukses',
@@ -246,9 +264,18 @@ class TransaksiController extends BaseController
         $qtyExchange = esc($this->request->getPost('qtyExchange'));
 
         $dbModel = new DetailBarangModel();
+        $bModel = new BarangModel();
         $result = $dbModel->ambilKuantitasDariAtasanSatuan($idBarang, $idSatuan, $qtyExchange);
 
         if ($result['success']) {
+            // dd($result['qty']);
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan pengkonversian kuantitas barang " . $bModel->find($idBarang)['nama_barang'] . " dari satuan atasan " . $result['qty']['namaSatuanAtasan'] . ' ke satuan dibawahnya yaitu ' .
+                    $result['qty']['namaSatuanRepresentatif'] . ' dengan kuantitas dari atasan sebesar ' . $result['qty']['awalAtasan'] . ' Menjadi ' . $result['qty']['akhirAtasan'] .
+                    ' dan menghasilkan konversi berikut ' . $result['qty']['awalRepresentatif'] . " + ($qtyExchange * " . $result['qty']['konversiTurunan'] . ") = " . $result['qty']['akhirRepresentatif'] .
+                    " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barang.detail', [$idBarang])->with('info', [
                 'judul' => 'Pengkonversian Satuan Barang Berhasil!',
                 'msg' => 'Pengkonversian Satuan barang dilakukan dengan sukses',
@@ -285,6 +312,12 @@ class TransaksiController extends BaseController
             'konversi_turunan' => $konversiTurunan,
             'kuantitas' => 0
         ])) {
+            $bModel = new BarangModel();
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan detail barang pada barang " .
+                    $bModel->find($idBarang)['nama_barang'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barang.detail', [$idBarang])->with('info', [
                 'judul' => 'Penambahan Detail Barang Berhasil!',
                 'msg' => 'Penambahan detail barang dilakukan dengan sukses',
@@ -313,7 +346,14 @@ class TransaksiController extends BaseController
         $idBarang = esc($this->request->getPost('idBarangDel'));
 
         $dbModel = new DetailBarangModel();
+        $oldResult = $dbModel->join('satuan', 'satuan.id_satuan = detail_barang.id_satuan')->find($idDetailBarang);
         if ($dbModel->delete($idDetailBarang)) {
+            $bModel = new BarangModel();
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penghapusan detail barang pada barang " . $bModel->find($idBarang)['nama_barang'] . " berupa " .
+                    $oldResult['nama_satuan'] . " pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barang.detail', [$idBarang])->with('info', [
                 'judul' => 'Penghapusan Detail Barang Berhasil!',
                 'msg' => 'Penghapusan detail barang dilakukan dengan sukses',
@@ -424,6 +464,10 @@ class TransaksiController extends BaseController
 
         $result = $bmModel->buatTambahBarangMasukDanDetailBarangMasuk($dataBarangMasuk, $barangList, $satuanList, $qtyList);
         if ($result['berhasil']) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan barang masuk pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barangmasuk')->with('info', [
                 'judul' => 'Pengisian Barang Masuk Sukses!',
                 'msg' => 'Penambahan Barang Masuk dapat diselesaikan dengan sukses',
@@ -507,12 +551,18 @@ class TransaksiController extends BaseController
             'namelink' => 'Pengajuan Barang Keluar',
             'link' => base_url() . route_to('admin.transaksi.barangkeluar')
         ];
-        return view('Admin/PengajuanBarangKeluar', [
-            'judul' => 'Pengajuan Barang Keluar',
-            'userdata' => $this->userdata,
-            'bklist' => $bklist,
-            'breadcrumbs' => $this->breadcrumbs,
-        ]);
+        if (!$this->request->getPost('android'))
+            return view('Admin/PengajuanBarangKeluar', [
+                'judul' => 'Pengajuan Barang Keluar',
+                'userdata' => $this->userdata,
+                'bklist' => $bklist,
+                'breadcrumbs' => $this->breadcrumbs,
+            ]);
+        else {
+            return $this->respond([
+                'barang_keluar' => $bklist
+            ], 200);
+        }
     }
 
     public function barangKeluarForm()
@@ -575,6 +625,10 @@ class TransaksiController extends BaseController
         ];
         $result = $bkModel->buatTambahBarangKeluarDanDetailBarangKeluar($barangKeluar, $bList, $sList, $qList);
         if ($result['berhasil']) {
+            LogAktifitasModel::CreateLog(
+                $this->userdata['id_user'],
+                "Melakukan penambahan barang keluar pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
+            );
             return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
                 'judul' => 'Pengisian Barang Keluar Sukses!',
                 'msg' => 'Penambahan Barang Keluar dapat diselesaikan dengan sukses',
@@ -641,5 +695,34 @@ class TransaksiController extends BaseController
             'barKel' => $barKel,
             'dbklist' => $dbmList
         ]);
+    }
+
+    public function ubahStatusBarangKeluar()
+    {
+        $idBarKel = esc($this->request->getPost('idBarKel'));
+        $barkelModel = new BarangKeluarModel();
+        if ($barkelModel->update($idBarKel, [
+            'status' => 1
+        ])) {
+            return redirect()->back()->with('info', [
+                'judul' => 'Pengubahan Status Barang Keluar Berhasil!',
+                'msg' => 'Ubah status barang keluar berjalan dengan sukses!',
+                'role' => 'success'
+            ]);
+        } else {
+            $err = $barkelModel->errors();
+            if (!empty($err)) {
+                $msgerr = '<ul>';
+                foreach ($err as $e) {
+                    $msgerr .= '<li>' . esc($e) . '</li>';
+                }
+                $msgerr .= '</ul>';
+                return redirect()->back()->with('info', [
+                    'judul' => 'Pengubahan status barang keluar gagal',
+                    'msg' => $msgerr,
+                    'role' => 'error'
+                ]);
+            }
+        }
     }
 }

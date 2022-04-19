@@ -14,7 +14,8 @@ use CodeIgniter\I18n\Time; ?>
                     <p>
                         Tanggal: <b><?= Time::parse($barKel['tanggal_keluar'])->toLocalizedString('d MMMM yyyy'); ?></b> - Pukul: <b><?= Time::parse($barKel['tanggal_keluar'])->toLocalizedString('HH:mm'); ?></b><br />
                         Ditambahkan Oleh: <b><?= $barKel['nama_user']; ?></b><br />
-                        Yang diajukan oleh Unit Kerja: <b><?= $barKel['nama_unit_kerja'] ?></b>
+                        Yang diajukan oleh Unit Kerja: <b><?= $barKel['nama_unit_kerja'] ?></b><br />
+                        Status: <b><?= $barKel['status'] == 0 ? 'PROSES' : 'SELESAI'; ?></b>
                     </p>
                 </div>
             </div>
