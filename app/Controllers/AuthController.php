@@ -115,28 +115,41 @@ class AuthController extends BaseController
 		$newPass = esc($this->request->getPost('newpass'));
 		$newPassConfirm = esc($this->request->getPost('newpassconfirm'));
 		if (empty($oldPass) || empty($newPass) || empty($newPassConfirm)) {
-			return redirect()->back()->with('info', [
-				'judul' => 'Semua isian harus di isi',
-				'msg' => '',
-				'role' => 'error'
-			]);
+			if (!$this->request->getPost('android')) {
+				return redirect()->back()->with('info', [
+					'judul' => 'Semua isian harus di isi',
+					'msg' => '',
+					'role' => 'error'
+				]);
+			} else {
+				return $this->fail('Mohon masukan semua field yang dibutuhkan');
+			}
 		}
 		if ($newPass !== $newPassConfirm) {
-			return redirect()->back()->with('info', [
-				'judul' => 'Password dan Konfirmasi Password tidak sama',
-				'msg' => 'Password yang anda masukan tidak sama dengan konfirmasi password',
-				'role' => 'error'
-			]);
+			if (!$this->request->getPost('android')) {
+				return redirect()->back()->with('info', [
+					'judul' => 'Password dan Konfirmasi Password tidak sama',
+					'msg' => 'Password yang anda masukan tidak sama dengan konfirmasi password',
+					'role' => 'error'
+				]);
+			} else {
+				return $this->fail('Password yang baru dan konfirmasi password tidak sama');
+			}
 		}
+
 		$idUser = $this->userdata['id_user'];
 		$uModel = new UserModel();
 		$oldResult = $uModel->find($idUser);
 		if (!password_verify($oldPass, $oldResult['password'])) {
-			return redirect()->back()->with('info', [
-				'judul' => 'Password saat ini yang anda masukan tidak valid',
-				'msg' => 'Mohon masukan password saat ini yang valid',
-				'role' => 'error'
-			]);
+			if (!$this->request->getPost('android')) {
+				return redirect()->back()->with('info', [
+					'judul' => 'Password saat ini yang anda masukan tidak valid',
+					'msg' => 'Mohon masukan password saat ini yang valid',
+					'role' => 'error'
+				]);
+			} else {
+				return $this->fail('Password saat ini yang anda masukan tidak sesuai');
+			}
 		}
 		if ($uModel->update($idUser, [
 			'password' => password_hash($newPass, PASSWORD_BCRYPT)
@@ -147,11 +160,17 @@ class AuthController extends BaseController
 					. Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
 			);
 
-			return redirect()->back()->with('info', [
-				'judul' => 'Password Berhasil diubah',
-				'msg' => 'Silahkan gunakan password yang baru',
-				'role' => 'success'
-			]);
+			if (!$this->request->getPost('android')) {
+				return redirect()->back()->with('info', [
+					'judul' => 'Password Berhasil diubah',
+					'msg' => 'Silahkan gunakan password yang baru',
+					'role' => 'success'
+				]);
+			} else {
+				return $this->respondUpdated([
+					'message' => 'Sukses mengubah password'
+				]);
+			}
 		} else {
 			$err = $uModel->errors();
 			if (!empty($err)) {
@@ -160,11 +179,15 @@ class AuthController extends BaseController
 					$msgerr .= '<li>' . esc($e) . '</li>';
 				}
 				$msgerr .= '</ul>';
-				return redirect()->back()->with('info', [
-					'judul' => 'Ubah password gagal',
-					'msg' => $msgerr,
-					'role' => 'error'
-				]);
+				if (!$this->request->getPost('android')) {
+					return redirect()->back()->with('info', [
+						'judul' => 'Ubah password gagal',
+						'msg' => $msgerr,
+						'role' => 'error'
+					]);
+				} else {
+					return $this->failValidationErrors($msgerr);
+				}
 			}
 		}
 	}

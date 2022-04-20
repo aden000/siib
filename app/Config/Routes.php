@@ -41,6 +41,7 @@ $routes->group('api', function ($routes) {
 	$routes->group('auth', function ($routes) {
 		$routes->post('login', 'AuthController::login');
 		$routes->post('logout', 'AuthController::logout');
+		$routes->post('changepass', 'AuthController::changePassword');
 	});
 	$routes->post('user', 'UserController::getUserInfo', ['filter' => 'authfilter']);
 	$routes->post('dashboard', 'DefaultController::dashboard', ['filter' => 'authfilter']);
