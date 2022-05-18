@@ -9,7 +9,7 @@
                         <div class="row no-gutters align-items-center text-info">
                             <div class="col mr-2">
                                 <h4 class="mb-0"><?= $countBarang; ?></h4>
-                                <small class="text-sm font-font-weight-bold ">Banyaknya Barang Terdaftar</small>
+                                <small class="text-sm ">Banyaknya Barang Terdaftar</small>
                                 <h6 class="mt-2"><b>Klik untuk lihat selengkapnya >></b></h6>
                             </div>
                             <div class="col-auto">

@@ -8,6 +8,7 @@
                 <thead>
                     <tr>
                         <th>No</th>
+                        <th>Kode</th>
                         <th>Yang Mengajukan</th>
                         <th>Dilakukan Oleh</th>
                         <th>Tanggal Keluar</th>
@@ -20,6 +21,7 @@
                     foreach ($bklist as $b) : ?>
                         <tr>
                             <td scope="row"><?= $no++; ?></td>
+                            <td>BK<?= str_pad($b['id_barang_keluar'], 4, "0", STR_PAD_LEFT); ?></td>
                             <td><?= $b['nama_unit_kerja']; ?></td>
                             <td><?= $b['nama_user']; ?></td>
                             <td><?= $b['tanggal_keluar']; ?></td>

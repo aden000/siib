@@ -177,11 +177,13 @@ class TransaksiController extends BaseController
     public function detailBarang($idBarang)
     {
         if (empty($idBarang)) {
-            return redirect()->route('admin.transaksi.barang')->with('info', [
-                'judul' => 'Detail barang tidak ditemukan',
-                'msg' => 'Detail barang tidak bisa ditampilkan',
-                'role' => 'error'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barang')->with('info', [
+                    'judul' => 'Detail barang tidak ditemukan',
+                    'msg' => 'Detail barang tidak bisa ditampilkan',
+                    'role' => 'error'
+                ]);
+            else return $this->fail('id dibutuhkan');
         }
         $model = new BarangModel();
         $resultB = $model->find($idBarang);
@@ -191,11 +193,13 @@ class TransaksiController extends BaseController
         // dd(empty($resultB), empty($resultDB));
 
         if (empty($resultDB) && empty($resultB)) {
-            return redirect()->route('admin.transaksi.barang')->with('info', [
-                'judul' => 'Detail barang tidak ditemukan',
-                'msg' => 'Detail barang tidak bisa ditampilkan',
-                'role' => 'error'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barang')->with('info', [
+                    'judul' => 'Detail barang tidak ditemukan',
+                    'msg' => 'Detail barang tidak bisa ditampilkan',
+                    'role' => 'error'
+                ]);
+            else return $this->fail('detail barang tidak ditemukan');
         }
 
         $this->breadcrumbs[] = [
@@ -207,16 +211,20 @@ class TransaksiController extends BaseController
             'link' => '#'
         ];
 
-        return view('Admin/DetailBarang', [
-            'judul' => "Detail Barang",
-            'subjudul' => $resultB['nama_barang'],
-            'userdata' => $this->userdata,
-            'breadcrumbs' => $this->breadcrumbs,
-            'barang' => $resultB,
-            'detailbaranglist' => $resultDB,
-            'satuanlist' => $sModel->findAll(),
-            'key' => $this->SetSessionAjaxReq()
-        ]);
+        if (!$this->request->getPost('android'))
+            return view('Admin/DetailBarang', [
+                'judul' => "Detail Barang",
+                'subjudul' => $resultB['nama_barang'],
+                'userdata' => $this->userdata,
+                'breadcrumbs' => $this->breadcrumbs,
+                'barang' => $resultB,
+                'detailbaranglist' => $resultDB,
+                'satuanlist' => $sModel->findAll(),
+                'key' => $this->SetSessionAjaxReq()
+            ]);
+        else return $this->respond([
+            'detailBarangList' => $resultDB
+        ], 200);
     }
 
     public function deleteBarang()
@@ -601,61 +609,70 @@ class TransaksiController extends BaseController
         $bkModel = new BarangKeluarModel();
 
         if (empty($unitKerja) || empty($bList) || empty($sList) || empty($qList)) {
-            return redirect()->route('admin.transaksi.barangkeluar')->withInput()->with('info', [
-                'judul' => 'Tidak semua kolom di isi, Penambahan Barang Keluar gagal',
-                'msg' => 'Harap mengisi keseluruhan kolom yang ada',
-                'role' => 'error'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barangkeluar')->withInput()->with('info', [
+                    'judul' => 'Tidak semua kolom di isi, Penambahan Barang Keluar gagal',
+                    'msg' => 'Harap mengisi keseluruhan kolom yang ada',
+                    'role' => 'error'
+                ]);
+            else return $this->fail("Harap mengisi semua field yang diperlukan");
         }
         $cBL = count($bList);
         $cSL = count($sList);
         $cQL = count($qList);
 
-        if ($cBL <> $cSL || $cSL <> $cQL) {
-            return redirect()->route('admin.transaksi.barangkeluar')->withInput()->with('info', [
-                'judul' => 'Tidak semua kolom di isi, Penambahan Barang Keluar gagal',
-                'msg' => 'Harap mengisi keseluruhan kolom yang ada',
-                'role' => 'error'
-            ]);
-        }
+        if (!$this->request->getPost('android'))
+            if ($cBL <> $cSL || $cSL <> $cQL) {
+                return redirect()->route('admin.transaksi.barangkeluar')->withInput()->with('info', [
+                    'judul' => 'Tidak semua kolom di isi, Penambahan Barang Keluar gagal',
+                    'msg' => 'Harap mengisi keseluruhan kolom yang ada',
+                    'role' => 'error'
+                ]);
+            }
 
         $barangKeluar = [
             'idUnitKerja' => $unitKerja,
             'Status' => 0
         ];
-        $result = $bkModel->buatTambahBarangKeluarDanDetailBarangKeluar($barangKeluar, $bList, $sList, $qList);
+        $result = $bkModel->buatTambahBarangKeluarDanDetailBarangKeluar($this->userdata['id_user'], $barangKeluar, $bList, $sList, $qList);
         if ($result['berhasil']) {
             LogAktifitasModel::CreateLog(
                 $this->userdata['id_user'],
                 "Melakukan penambahan barang keluar pada tanggal " . Time::now()->toLocalizedString('d MMMM yyyy - HH:mm')
             );
-            return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
-                'judul' => 'Pengisian Barang Keluar Sukses!',
-                'msg' => 'Penambahan Barang Keluar dapat diselesaikan dengan sukses',
-                'role' => 'success'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
+                    'judul' => 'Pengisian Barang Keluar Sukses!',
+                    'msg' => 'Penambahan Barang Keluar dapat diselesaikan dengan sukses',
+                    'role' => 'success'
+                ]);
+            else return $this->respondCreated();
         } else {
             $errBar = $result['pesan'];
             $msgerr = '<ul>';
             foreach ($errBar as $e) {
                 $msgerr .= '<li>' . esc($e) . '</li>';
             }
-            return redirect()->route('admin.transaksi.barangkeluar.form')->with('info', [
-                'judul' => 'Pembuatan Barang Keluar gagal',
-                'msg' => $msgerr,
-                'role' => 'error'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barangkeluar.form')->with('info', [
+                    'judul' => 'Pembuatan Barang Keluar gagal',
+                    'msg' => $msgerr,
+                    'role' => 'error'
+                ]);
+            else return $this->failValidationErrors($msgerr);
         }
     }
 
     public function detailBarangKeluar($idBarangKeluar)
     {
         if (empty($idBarangKeluar)) {
-            return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
-                'judul' => 'Detail Barang Keluar tidak ditemukan',
-                'msg' => 'Detail Barang Keluar tidak bisa ditampilkan',
-                'role' => 'error'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
+                    'judul' => 'Detail Barang Keluar tidak ditemukan',
+                    'msg' => 'Detail Barang Keluar tidak bisa ditampilkan',
+                    'role' => 'error'
+                ]);
+            else return $this->fail("id barang keluar diperlukan");
         }
 
         $barKel = new BarangKeluarModel();
@@ -671,11 +688,13 @@ class TransaksiController extends BaseController
 
 
         if (empty($dbmList) && empty($barKel)) {
-            return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
-                'judul' => 'Detail Barang Keluar tidak ditemukan',
-                'msg' => 'Detail Barang Keluar tidak bisa ditampilkan',
-                'role' => 'error'
-            ]);
+            if (!$this->request->getPost('android'))
+                return redirect()->route('admin.transaksi.barangkeluar')->with('info', [
+                    'judul' => 'Detail Barang Keluar tidak ditemukan',
+                    'msg' => 'Detail Barang Keluar tidak bisa ditampilkan',
+                    'role' => 'error'
+                ]);
+            else return $this->failNotFound('Detail barang keluar tidak dapat ditemukan');
         }
 
         $this->breadcrumbs[] = [
@@ -687,14 +706,18 @@ class TransaksiController extends BaseController
             'link' => base_url() . route_to('admin.transaksi.barangkeluar.detail', $idBarangKeluar)
         ];
 
-        return view('Admin/DetailPengajuanBarangKeluar', [
-            'judul' => 'Detail Barang Keluar',
-            'userdata' => $this->userdata,
-            'breadcrumbs' => $this->breadcrumbs,
-            'idBarKel' => $idBarangKeluar,
-            'barKel' => $barKel,
-            'dbklist' => $dbmList
-        ]);
+        if (!$this->request->getPost('android'))
+            return view('Admin/DetailPengajuanBarangKeluar', [
+                'judul' => 'Detail Barang Keluar',
+                'userdata' => $this->userdata,
+                'breadcrumbs' => $this->breadcrumbs,
+                'idBarKel' => $idBarangKeluar,
+                'barKel' => $barKel,
+                'dbklist' => $dbmList
+            ]);
+        else return $this->respond([
+            'detailBarangKeluarList' => $dbmList
+        ], 200);
     }
 
     public function ubahStatusBarangKeluar()
@@ -704,11 +727,14 @@ class TransaksiController extends BaseController
         if ($barkelModel->update($idBarKel, [
             'status' => 1
         ])) {
-            return redirect()->back()->with('info', [
-                'judul' => 'Pengubahan Status Barang Keluar Berhasil!',
-                'msg' => 'Ubah status barang keluar berjalan dengan sukses!',
-                'role' => 'success'
-            ]);
+            LogAktifitasModel::CreateLog($this->userdata['id_user'], "Mengubah status barang keluar ");
+            if (!$this->request->getPost('android'))
+                return redirect()->back()->with('info', [
+                    'judul' => 'Pengubahan Status Barang Keluar Berhasil!',
+                    'msg' => 'Ubah status barang keluar berjalan dengan sukses!',
+                    'role' => 'success'
+                ]);
+            else return $this->respondUpdated($barkelModel->find($idBarKel), "Sukses mengubah data");
         } else {
             $err = $barkelModel->errors();
             if (!empty($err)) {
@@ -717,12 +743,91 @@ class TransaksiController extends BaseController
                     $msgerr .= '<li>' . esc($e) . '</li>';
                 }
                 $msgerr .= '</ul>';
-                return redirect()->back()->with('info', [
-                    'judul' => 'Pengubahan status barang keluar gagal',
-                    'msg' => $msgerr,
-                    'role' => 'error'
+                if (!$this->request->getPost('android'))
+                    return redirect()->back()->with('info', [
+                        'judul' => 'Pengubahan status barang keluar gagal',
+                        'msg' => $msgerr,
+                        'role' => 'error'
+                    ]);
+                else return $this->fail([
+                    'errors' => $msgerr
                 ]);
             }
         }
+    }
+
+    public function barangKeluarTestPaginate()
+    {
+        $page = $this->request->getGet('page');
+        $search = $this->request->getGet('search');
+        $from = $this->request->getGet('from');
+        $to = $this->request->getGet('to');
+
+        $usingFromTo = (!empty($from) && !empty($to));
+
+        $fromConv = null;
+        $toConv = null;
+        if ($usingFromTo) {
+            $fromConv = Time::createFromTimestamp($from)->toDateTimeString();
+            $toConv = Time::createFromTimestamp($to)->toDateTimeString();
+        }
+        if (empty($page)) {
+            $page = 1;
+        }
+        $bkmodel = new BarangKeluarModel();
+        $bkList = null;
+        if (empty($search)) {
+            if ($usingFromTo) {
+                $bkList = $bkmodel
+                    ->join('unit_kerja', 'unit_kerja.id_unit_kerja = barang_keluar.id_unit_kerja')
+                    ->join('users', 'users.id_user = barang_keluar.id_user')
+                    ->select('barang_keluar.id_barang_keluar, unit_kerja.nama_unit_kerja, users.nama_user, barang_keluar.tanggal_keluar, barang_keluar.status')
+                    ->orderBy('barang_keluar.id_barang_keluar DESC')
+                    ->where('barang_keluar.tanggal_keluar BETWEEN \'' . $fromConv . '\' AND \'' . $toConv . '\'')
+                    ->paginate(10, 'default', $page);
+            } else {
+                $bkList = $bkmodel
+                    ->join('unit_kerja', 'unit_kerja.id_unit_kerja = barang_keluar.id_unit_kerja')
+                    ->join('users', 'users.id_user = barang_keluar.id_user')
+                    ->select('barang_keluar.id_barang_keluar, unit_kerja.nama_unit_kerja, users.nama_user, barang_keluar.tanggal_keluar, barang_keluar.status')
+                    ->orderBy('barang_keluar.id_barang_keluar DESC')
+                    ->paginate(10, 'default', $page);
+            }
+        } else {
+            if ($usingFromTo) {
+                $bkList = $bkmodel
+                    ->join('unit_kerja', 'unit_kerja.id_unit_kerja = barang_keluar.id_unit_kerja')
+                    ->join('users', 'users.id_user = barang_keluar.id_user')
+                    ->select('barang_keluar.id_barang_keluar, unit_kerja.nama_unit_kerja, users.nama_user, barang_keluar.tanggal_keluar, barang_keluar.status')
+                    ->where('barang_keluar.tanggal_keluar BETWEEN \'' . $fromConv . '\' AND \'' . $toConv . '\'')
+                    ->orderBy('barang_keluar.id_barang_keluar DESC')
+                    ->groupStart()
+                    ->like('nama_unit_kerja', $search)
+                    ->orLike('nama_user', $search)
+                    ->orLike('CONCAT("BK",LPAD(id_barang_keluar, 4, "0"))', $search)
+                    ->orLike('DATE_FORMAT(tanggal_keluar, "%d %M %Y")', $search)
+                    ->groupEnd()
+                    ->paginate(10, 'default', $page);
+            } else {
+                $bkList = $bkmodel
+                    ->join('unit_kerja', 'unit_kerja.id_unit_kerja = barang_keluar.id_unit_kerja')
+                    ->join('users', 'users.id_user = barang_keluar.id_user')
+                    ->select('barang_keluar.id_barang_keluar, unit_kerja.nama_unit_kerja, users.nama_user, barang_keluar.tanggal_keluar, barang_keluar.status')
+                    ->orderBy('barang_keluar.id_barang_keluar DESC')
+                    ->like('nama_unit_kerja', $search)
+                    ->orLike('nama_user', $search)
+                    ->orLike('CONCAT("BK",LPAD(id_barang_keluar, 4, "0"))', $search)
+                    ->orLike('DATE_FORMAT(tanggal_keluar, "%d %M %Y")', $search)
+                    ->paginate(10, 'default', $page);
+            }
+        }
+
+        return $this->respond([
+            'barang_keluar' => $bkList,
+            'hasMore' => $bkmodel->pager->hasMore(),
+            'nextPage' => $bkmodel->pager->hasMore() ? $bkmodel->pager->getCurrentPage() + 1 : null,
+            // 'from' => $fromConv,
+            // 'to' => $toConv
+        ]);
     }
 }

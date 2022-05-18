@@ -9,6 +9,7 @@ use App\Models\SatuanModel;
 use App\Models\SemesterModel;
 use App\Models\UnitKerjaModel;
 use App\Models\VendorModel;
+use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
 
 class KelolaController extends BaseController
@@ -164,12 +165,16 @@ class KelolaController extends BaseController
             'namelink' => 'Kelola Unit Kerja',
             'link' => base_url() . route_to('admin.kelola.unitkerja')
         ];
-        return view('Admin/ManageUnitKerja', [
-            'judul' => 'Kelola Unit Kerja',
-            'userdata' => $this->userdata,
-            'unitkerjalist' => $unitkerjalist,
-            'breadcrumbs' => $this->breadcrumbs,
-        ]);
+        if (!$this->request->getPost('android'))
+            return view('Admin/ManageUnitKerja', [
+                'judul' => 'Kelola Unit Kerja',
+                'userdata' => $this->userdata,
+                'unitkerjalist' => $unitkerjalist,
+                'breadcrumbs' => $this->breadcrumbs,
+            ]);
+        else return $this->response->setJSON([
+            'unit_kerja' => $unitkerjalist
+        ])->setStatusCode(ResponseInterface::HTTP_OK);
     }
     public function createUnitKerja()
     {

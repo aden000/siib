@@ -43,11 +43,21 @@ $routes->group('api', function ($routes) {
 		$routes->post('logout', 'AuthController::logout');
 		$routes->post('changepass', 'AuthController::changePassword');
 	});
+	$routes->get('testpaginate', 'TransaksiController::barangKeluarTestPaginate', ['filter' => 'authfilter']);
 	$routes->post('user', 'UserController::getUserInfo', ['filter' => 'authfilter']);
 	$routes->post('dashboard', 'DefaultController::dashboard', ['filter' => 'authfilter']);
 	$routes->group('barang', ['filter' => 'authfilter'], function ($routes) {
-		$routes->post('daftar-barang', 'TransaksiController::daftarBarang');
-		$routes->post('keluar', 'TransaksiController::barangKeluar');
+		$routes->post('get', 'TransaksiController::daftarBarang');
+		$routes->post('detail/(:num)', 'TransaksiController::detailBarang/$1');
+		$routes->group('keluar', function ($routes) {
+			$routes->get('get', 'TransaksiController::barangKeluarTestPaginate');
+			$routes->post('detail/(:num)', 'TransaksiController::detailBarangKeluar/$1');
+			$routes->post('ubah-status', 'TransaksiController::ubahStatusBarangKeluar');
+			$routes->post('create', 'TransaksiController::barangKeluarCreate');
+		});
+	});
+	$routes->group('unit-kerja', ['filter' => 'authfilter'], function ($routes) {
+		$routes->post('get', 'KelolaController::indexUnitKerja');
 	});
 });
 

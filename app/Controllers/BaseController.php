@@ -72,6 +72,7 @@ class BaseController extends Controller
 				$jwt = $matches[1];
 			}
 		}
+		// print_r("Bruh");
 		$this->userdata = $uModel->find(session()->get('LoggedInID'));
 		$id = null;
 		if ($jwt != null) {

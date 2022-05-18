@@ -33,7 +33,7 @@ class AuthFilter implements FilterInterface
 	{
 		$req = \Config\Services::request();
 		$uAgent = $req->getUserAgent();
-		if ($req->getVar('android')) {
+		if ($req->getPostGet('android')) {
 			$token = null;
 
 			$header = $req->header('Authorization');

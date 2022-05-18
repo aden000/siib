@@ -74,14 +74,14 @@ class BarangKeluarModel extends Model
         return $dbklist;
     }
 
-    public function buatTambahBarangKeluarDanDetailBarangKeluar(array $barangKeluar, array $bList, array $sList, array $qList)
+    public function buatTambahBarangKeluarDanDetailBarangKeluar(int $idUser, array $barangKeluar, array $bList, array $sList, array $qList)
     {
         $bool = TRUE;
         // dd($barangMasuk, $satuanList, $qtyList);
         $dbkModel = new DetailBarangKeluarModel();
-        $sess = \Config\Services::session();
+        // $sess = \Config\Services::session();
         $this->insert([
-            'id_user' => $sess->get('LoggedInID'),
+            'id_user' => $idUser, //$sess->get('LoggedInID'),
             'id_unit_kerja' => $barangKeluar["idUnitKerja"],
             'tanggal_keluar' => Time::now(),
             'status' => $barangKeluar['Status']

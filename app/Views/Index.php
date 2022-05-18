@@ -2,20 +2,13 @@
 <?= $this->section('content'); ?>
 <div class="container">
     <div class="row">
-        <div class="col-md-6">
-            <div class="row">
-                <h4 class="mt-4">Selamat datang di Web Sistem Informasi Inventaris Barang</h4>
-                <h6><span class="badge bg-primary">Dev version</span></h6>
-            </div>
-            <div class="row">
-                <img src="/assets/images/Packaging-Product.jpg" alt="placeholderimg" class="rounded img-fluid">
-                <p class="text-decoration-none"><small><a href="https://www.freevector.com/packaging-product-vector-29699#">Image source</a></small></p>
-            </div>
-
-        </div>
-        <div class="col-md-6 my-auto d-block">
+        <div class="col-sm-6 mx-auto mt-5 d-block">
+            <h6 class="text-center">Selamat Datang di Sistem Informasi Inventaris Barang</h6>
             <div class="card">
                 <div class="card-header">
+                    <div class="text-center">
+                        <img src="/assets/images/Logo_ITATS.png" width="80%" height="80%" alt="Logo ITATS">
+                    </div>
                     Login Sistem
                 </div>
                 <?php if (!session('LoggedInID')) : ?>
